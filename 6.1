@@ -1,0 +1,33 @@
+// To run this project:
+// 1. npm init -y
+// 2. npm install express
+// 3. node server.js
+
+// File: server.js
+const express = require('express');
+const app = express();
+const PORT = 3000;
+
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.url}`);
+  next();
+});
+
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) return res.status(401).json({ message: 'Authorization header missing' });
+  const token = authHeader.split(' ')[1];
+  if (token !== 'mysecrettoken') return res.status(403).json({ message: 'Invalid or missing token' });
+  next();
+};
+
+app.get('/', (req, res) => {
+  res.send('🌐 Public Route: No authentication required');
+});
+
+app.get('/protected', authenticateToken, (req, res) => {
+  res.send('🔒 Protected Route: Access granted with valid Bearer token');
+});
+
+app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
